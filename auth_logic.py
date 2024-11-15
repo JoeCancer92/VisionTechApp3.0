@@ -42,7 +42,7 @@ def validar_credenciales(usuario, contrasena, img_ruta_captura):
     if conexion:
         try:
             cursor = conexion.cursor()
-            query = "SELECT nombre, apellido FROM usuarios WHERE usuario = %s AND contrasena = %s"
+            query = "SELECT nombre, apellido, imagen FROM usuarios WHERE usuario = %s AND contrasena = %s"
             valores = (usuario, contrasena)
             cursor.execute(query, valores)
             resultado = cursor.fetchone()
@@ -51,13 +51,12 @@ def validar_credenciales(usuario, contrasena, img_ruta_captura):
                 raise ValueError("Usuario o contraseña incorrectos.")
 
             # Asignar los valores devueltos por la consulta
-            nombre, apellido = resultado
+            nombre, apellido, imagen_blob = resultado
 
-            # Obtener la ruta de la imagen guardada durante el registro
-            img_ruta_db = f'img_registradas/{usuario}.jpg'
-
-            if not os.path.exists(img_ruta_db):
-                raise ValueError("Imagen de usuario no encontrada en la base de datos.")
+            # Guardar la imagen registrada temporalmente para comparación
+            img_ruta_db = 'temp_registrada.jpg'
+            with open(img_ruta_db, 'wb') as img_file:
+                img_file.write(imagen_blob)
 
             # Comparar las imágenes con face_recognition
             imagen_registrada = face_recognition.load_image_file(img_ruta_db)
@@ -83,3 +82,6 @@ def validar_credenciales(usuario, contrasena, img_ruta_captura):
         finally:
             cursor.close()
             conexion.close()
+            # Eliminar las imágenes temporales
+            if os.path.exists(img_ruta_db):
+                os.remove(img_ruta_db)

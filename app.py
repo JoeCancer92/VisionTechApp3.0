@@ -8,7 +8,8 @@ app.secret_key = "supersecretkey"
 
 @app.route('/')
 def home():
-    return render_template('register_login.html')
+    success = request.args.get('success')
+    return render_template('register_login.html', success=success)
 
 @app.route('/registro', methods=['POST'])
 def registro():
@@ -61,6 +62,7 @@ def login():
         # Validar credenciales e imagen
         nombre, apellido = validar_credenciales(usuario, contrasena, img_ruta_captura)
         flash(f"Inicio de sesión exitoso. Bienvenido {nombre} {apellido}")
+        return redirect(url_for('home', success=True))
 
     except ValueError as ve:
         flash(str(ve))
