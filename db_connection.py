@@ -4,11 +4,12 @@ from mysql.connector import Error # type: ignore
 def conectar():
     try:
         conexion = mysql.connector.connect(
-            host='localhost',
+            host='visiontech-mysql.mysql.database.azure.com',
             port=3306,
-            user='root',
-            password='123456',  # Cambia esto por la contraseña de tu base de datos
-            database='face_rec'  # Cambia esto por el nombre de tu base de datos
+            user='admin_db',
+            password='Vision2024$',  # Cambia esto por la contraseña de tu base de datos en Azure
+            database='face_rec',  # Cambia esto por el nombre de tu base de datos
+            ssl_ca='DigiCertGlobalRootCA.crt.pem'  # Archivo SSL necesario para la conexión segura
         )
 
         if conexion.is_connected():
