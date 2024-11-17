@@ -79,9 +79,11 @@ def validar_credenciales(usuario, contrasena, img_ruta_captura):
 
         except Error as e:
             raise Exception(f"Error al validar las credenciales: {e}")
+        except ValueError as ve:
+            raise ve
         finally:
             cursor.close()
             conexion.close()
             # Eliminar las imágenes temporales
-            if os.path.exists(img_ruta_db):
+            if 'img_ruta_db' in locals() and os.path.exists(img_ruta_db):
                 os.remove(img_ruta_db)

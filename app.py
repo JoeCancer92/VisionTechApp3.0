@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, flash # type: ignore
+from flask import Flask, render_template, request, redirect, url_for, flash, session # type: ignore
 from auth_logic import registrar_usuario, validar_credenciales
 import os
 import base64
@@ -8,7 +8,7 @@ app.secret_key = "supersecretkey"
 
 @app.route('/')
 def home():
-    success = request.args.get('success')
+    success = session.pop('success', None)
     return render_template('register_login.html', success=success)
 
 @app.route('/registro', methods=['POST'])
@@ -62,7 +62,10 @@ def login():
         # Validar credenciales e imagen
         nombre, apellido = validar_credenciales(usuario, contrasena, img_ruta_captura)
         flash(f"Inicio de sesión exitoso. Bienvenido {nombre} {apellido}")
-        return redirect(url_for('home', success=True))
+        session['success'] = True
+        session['nombre'] = nombre
+        session['apellido'] = apellido
+        return redirect(url_for('menu_principal'))
 
     except ValueError as ve:
         flash(str(ve))
@@ -74,6 +77,14 @@ def login():
             os.remove(img_ruta_captura)
 
     return redirect(url_for('home'))
+
+@app.route('/menu')
+def menu_principal():
+    nombre = session.get('nombre')
+    apellido = session.get('apellido')
+    if not nombre or not apellido:
+        return redirect(url_for('home'))
+    return render_template('menuPrincipal.html', nombre=nombre, apellido=apellido)
 
 if __name__ == "__main__":
     app.run(debug=True)
