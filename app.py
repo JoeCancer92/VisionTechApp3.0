@@ -28,7 +28,6 @@ def registro():
     # Guardar la imagen base64 en un archivo
     try:
         with open(img_ruta, 'wb') as img_file:
-            import base64
             img_file.write(base64.b64decode(imagen_data.split(',')[1]))
     except Exception as e:
         flash(f"Error al guardar la imagen: {e}")
@@ -85,6 +84,13 @@ def menu_principal():
     if not nombre or not apellido:
         return redirect(url_for('home'))
     return render_template('menuPrincipal.html', nombre=nombre, apellido=apellido)
+
+# Ruta para cerrar sesión
+@app.route('/logout', methods=['GET'])
+def logout():
+    # Limpiar la sesión y redirigir a la página de registro/login
+    session.clear()
+    return redirect(url_for('home'))
 
 if __name__ == "__main__":
     app.run(debug=True)

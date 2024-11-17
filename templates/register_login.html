@@ -1,156 +1,248 @@
 <!DOCTYPE html>
 <html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Registro e Inicio de Sesión</title>
-</head>
-<body>
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="{{ url_for('static', filename='css/styles_register_login.css') }}"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
+    />
+    <link
+      rel="icon"
+      type="image/x-icon"
+      href="{{ url_for('static', filename='images/icono_VT.ico') }}"
+    />
+  </head>
+  <body>
     <h1>Bienvenido a VisionTech Solutions</h1>
 
-    <!-- Sección para mostrar mensajes flash -->
-    {% with messages = get_flashed_messages() %}
-    {% if messages %}
-        <div id="flashMessages">
-            {% for message in messages %}
-                <p style="color: red;">{{ message }}</p>
-            {% endfor %}
-        </div>
-    {% endif %}
-    {% endwith %}
+    <!-- Contenedor principal para los dos formularios -->
+    <div class="container">
+      <!-- Columna para el formulario de inicio de sesión -->
+      <div class="column" id="loginFormContainer">
+        <h2>Inicio de Sesión</h2>
+        <form
+          id="loginForm"
+          action="/login"
+          method="post"
+          enctype="multipart/form-data"
+        >
+          <label for="usuario">Usuario:</label>
+          <input type="text" id="usuario" name="usuario" required /><br />
 
-    <!-- Sección de Registro -->
-    <h2>Registrar Usuarios</h2>
-    <form id="registerForm" action="/registro" method="post" enctype="multipart/form-data">
-        <label for="nombre">Nombre:</label>
-        <input type="text" id="nombre" name="nombre" required><br><br>
+          <label for="contrasenaLogin">Contraseña:</label>
+          <input
+            type="password"
+            id="contrasenaLogin"
+            name="contrasena"
+            required
+          /><br />
 
-        <label for="apellido">Apellido:</label>
-        <input type="text" id="apellido" name="apellido" required><br><br>
+          <!-- Video para la cámara de inicio de sesión -->
+          <video id="videoLogin" width="320" height="240" autoplay></video
+          ><br />
 
-        <label for="contrasena">Contraseña:</label>
-        <input type="password" id="contrasena" name="contrasena" required><br><br>
+          <!-- Imagen capturada para el inicio de sesión -->
+          <canvas id="canvasLogin" style="display: none"></canvas>
+          <input type="hidden" id="imagenLogin" name="imagen" />
 
-        <!-- Video para la cámara de registro -->
-        <video id="videoRegister" width="640" height="480" autoplay></video><br>
+          <!-- Botón de inicio de sesión -->
+          <button type="button" id="loginButton">
+            <i class="fas fa-sign-in-alt"></i> Iniciar Sesión
+          </button>
+        </form>
 
-        <!-- Imagen capturada para el registro -->
-        <canvas id="canvasRegister" style="display:none;"></canvas>
-        <input type="hidden" id="imagenRegister" name="imagen">
+        <!-- Botón para cambiar al formulario de registro -->
+        <button type="button" id="showRegisterButton">Registrar</button>
+      </div>
 
-        <!-- Botón de registro -->
-        <button type="button" id="registerButton">Registrar y Capturar Rostro</button>
-    </form>
+      <!-- Columna para el formulario de registro -->
+      <div class="column" id="registerFormContainer" style="display: none">
+        <h2>Registrar Usuarios</h2>
+        <form
+          id="registerForm"
+          action="/registro"
+          method="post"
+          enctype="multipart/form-data"
+        >
+          <label for="nombre">Nombre:</label>
+          <input type="text" id="nombre" name="nombre" required /><br />
 
-    <hr>
+          <label for="apellido">Apellido:</label>
+          <input type="text" id="apellido" name="apellido" required /><br />
 
-    <!-- Sección de Inicio de Sesión -->
-    <h2>Inicio de Sesión</h2>
-    <form id="loginForm" action="/login" method="post" enctype="multipart/form-data">
-        <label for="usuario">Usuario:</label>
-        <input type="text" id="usuario" name="usuario" required><br><br>
+          <label for="contrasena">Contraseña:</label>
+          <input
+            type="password"
+            id="contrasena"
+            name="contrasena"
+            required
+          /><br />
 
-        <label for="contrasenaLogin">Contraseña:</label>
-        <input type="password" id="contrasenaLogin" name="contrasena" required><br><br>
+          <!-- Video para la cámara de registro -->
+          <video id="videoRegister" width="320" height="240" autoplay></video
+          ><br />
 
-        <!-- Video para la cámara de inicio de sesión -->
-        <video id="videoLogin" width="640" height="480" autoplay></video><br>
+          <!-- Imagen capturada para el registro -->
+          <canvas id="canvasRegister" style="display: none"></canvas>
+          <input type="hidden" id="imagenRegister" name="imagen" />
 
-        <!-- Imagen capturada para el inicio de sesión -->
-        <canvas id="canvasLogin" style="display:none;"></canvas>
-        <input type="hidden" id="imagenLogin" name="imagen">
+          <!-- Botón de registro -->
+          <button type="button" id="registerButton">
+            <i class="fas fa-user-plus"></i> Registrar y Capturar Rostro
+          </button>
+        </form>
 
-        <!-- Botón de inicio de sesión -->
-        <button type="button" id="loginButton">Iniciar Sesión</button>
-    </form>
-
+        <!-- Botón para cambiar al formulario de inicio de sesión -->
+        <button type="button" id="showLoginButton">Iniciar Sesión</button>
+      </div>
+    </div>
     <script>
-        // Configuración para registro de usuario
-        const videoRegister = document.getElementById('videoRegister');
-        const canvasRegister = document.getElementById('canvasRegister');
-        const registerButton = document.getElementById('registerButton');
-        const imagenRegisterInput = document.getElementById('imagenRegister');
+      // Configuración para registro de usuario
+      const videoRegister = document.getElementById("videoRegister");
+      const canvasRegister = document.getElementById("canvasRegister");
+      const registerButton = document.getElementById("registerButton");
+      const imagenRegisterInput = document.getElementById("imagenRegister");
 
-        navigator.mediaDevices.getUserMedia({ video: true })
-            .then((stream) => {
-                videoRegister.srcObject = stream;
-            })
-            .catch((err) => {
-                console.error('Error al acceder a la cámara para registro:', err);
-                alert('Error al acceder a la cámara. Por favor, verifica tu configuración.');
-            });
-
-        registerButton.addEventListener('click', () => {
-            const nombre = document.getElementById('nombre').value;
-            const apellido = document.getElementById('apellido').value;
-
-            if (nombre === "" || apellido === "") {
-                alert("Por favor, completa todos los campos requeridos.");
-                return;
-            }
-
-            const context = canvasRegister.getContext('2d');
-            canvasRegister.width = videoRegister.videoWidth;
-            canvasRegister.height = videoRegister.videoHeight;
-            context.drawImage(videoRegister, 0, 0, canvasRegister.width, canvasRegister.height);
-
-            const dataUrl = canvasRegister.toDataURL('image/jpeg');
-            imagenRegisterInput.value = dataUrl;
-
-            // Mostrar los mensajes modales (alert) antes de enviar el formulario
-            alert(`Registro completado exitosamente. El usuario creado es: ${nombre[0].toUpperCase()}${apellido.split(' ')[0].charAt(0).toUpperCase()}${apellido.split(' ')[0].slice(1).toLowerCase()}`);
-            alert(`Bienvenido/a ${nombre} ${apellido}`);
-
-            // Enviar el formulario de registro
-            document.getElementById('registerForm').submit();
+      navigator.mediaDevices
+        .getUserMedia({ video: true })
+        .then((stream) => {
+          videoRegister.srcObject = stream;
+        })
+        .catch((err) => {
+          console.error("Error al acceder a la cámara para registro:", err);
+          alert(
+            "Error al acceder a la cámara. Por favor, verifica tu configuración."
+          );
         });
 
-        // Configuración para inicio de sesión
-        const videoLogin = document.getElementById('videoLogin');
-        const canvasLogin = document.getElementById('canvasLogin');
-        const loginButton = document.getElementById('loginButton');
-        const imagenLoginInput = document.getElementById('imagenLogin');
+      registerButton.addEventListener("click", () => {
+        const nombre = document.getElementById("nombre").value;
+        const apellido = document.getElementById("apellido").value;
 
-        navigator.mediaDevices.getUserMedia({ video: true })
-            .then((stream) => {
-                videoLogin.srcObject = stream;
-            })
-            .catch((err) => {
-                console.error('Error al acceder a la cámara para inicio de sesión:', err);
-                alert('Error al acceder a la cámara. Por favor, verifica tu configuración.');
-            });
+        if (nombre === "" || apellido === "") {
+          alert("Por favor, completa todos los campos requeridos.");
+          return;
+        }
 
-        loginButton.addEventListener('click', () => {
-            const usuario = document.getElementById('usuario').value;
-            const contrasena = document.getElementById('contrasenaLogin').value;
+        // Mostrar spinner de carga en el botón
+        registerButton.innerHTML =
+          '<i class="fas fa-spinner fa-spin"></i> Registrando...';
 
-            if (usuario === "" || contrasena === "") {
-                alert("Por favor, completa todos los campos requeridos.");
-                return;
-            }
+        const context = canvasRegister.getContext("2d");
+        canvasRegister.width = videoRegister.videoWidth;
+        canvasRegister.height = videoRegister.videoHeight;
+        context.drawImage(
+          videoRegister,
+          0,
+          0,
+          canvasRegister.width,
+          canvasRegister.height
+        );
 
-            const context = canvasLogin.getContext('2d');
-            canvasLogin.width = videoLogin.videoWidth;
-            canvasLogin.height = videoLogin.videoHeight;
-            context.drawImage(videoLogin, 0, 0, canvasLogin.width, canvasLogin.height);
+        const dataUrl = canvasRegister.toDataURL("image/jpeg");
+        imagenRegisterInput.value = dataUrl;
 
-            const dataUrl = canvasLogin.toDataURL('image/jpeg');
-            imagenLoginInput.value = dataUrl;
+        // Mostrar los mensajes modales (alert) antes de enviar el formulario
+        alert(
+          `Registro completado exitosamente. El usuario creado es: ${nombre[0].toUpperCase()}${apellido
+            .split(" ")[0]
+            .charAt(0)
+            .toUpperCase()}${apellido.split(" ")[0].slice(1).toLowerCase()}`
+        );
+        alert(`Bienvenido/a ${nombre} ${apellido}`);
 
-            // Enviar el formulario de inicio de sesión
-            document.getElementById('loginForm').submit();
+        // Enviar el formulario de registro
+        document.getElementById("registerForm").submit();
+      });
+
+      // Configuración para inicio de sesión
+      const videoLogin = document.getElementById("videoLogin");
+      const canvasLogin = document.getElementById("canvasLogin");
+      const loginButton = document.getElementById("loginButton");
+      const imagenLoginInput = document.getElementById("imagenLogin");
+
+      navigator.mediaDevices
+        .getUserMedia({ video: true })
+        .then((stream) => {
+          videoLogin.srcObject = stream;
+        })
+        .catch((err) => {
+          console.error(
+            "Error al acceder a la cámara para inicio de sesión:",
+            err
+          );
+          alert(
+            "Error al acceder a la cámara. Por favor, verifica tu configuración."
+          );
         });
 
-        // Mostrar el mensaje de bienvenida desde el servidor si está disponible
-        window.addEventListener("load", () => {
-            const flashMessage = "{{ get_flashed_messages()|join(' ') }}";
-            if (flashMessage && flashMessage.startsWith("Inicio de sesión exitoso")) {
-                alert(flashMessage);
-            } else if (flashMessage) {
-                // Mostrar cualquier otro mensaje flash (como errores)
-                alert(flashMessage);
-            }
-        });
+      loginButton.addEventListener("click", () => {
+        const usuario = document.getElementById("usuario").value;
+        const contrasena = document.getElementById("contrasenaLogin").value;
+
+        if (usuario === "" || contrasena === "") {
+          alert("Por favor, completa todos los campos requeridos.");
+          return;
+        }
+
+        // Mostrar spinner de carga en el botón
+        loginButton.innerHTML =
+          '<i class="fas fa-spinner fa-spin"></i> Iniciando...';
+
+        const context = canvasLogin.getContext("2d");
+        canvasLogin.width = videoLogin.videoWidth;
+        canvasLogin.height = videoLogin.videoHeight;
+        context.drawImage(
+          videoLogin,
+          0,
+          0,
+          canvasLogin.width,
+          canvasLogin.height
+        );
+
+        const dataUrl = canvasLogin.toDataURL("image/jpeg");
+        imagenLoginInput.value = dataUrl;
+
+        // Enviar el formulario de inicio de sesión
+        document.getElementById("loginForm").submit();
+      });
+
+      // Mostrar el mensaje de bienvenida desde el servidor si está disponible
+      window.addEventListener("load", () => {
+        const flashMessage = "{{ get_flashed_messages()|join(' ') }}";
+        if (
+          flashMessage &&
+          flashMessage.startsWith("Inicio de sesión exitoso")
+        ) {
+          alert(flashMessage);
+        } else if (flashMessage) {
+          // Mostrar cualquier otro mensaje flash (como errores)
+          alert(flashMessage);
+        }
+      });
     </script>
-</body>
+    <script src="{{ url_for('static', filename='js/toggle_forms.js') }}"></script>
+  </body>
+  <footer
+    style="
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      text-align: center;
+      padding: 10px;
+      background-color: #007bff;
+      color: white;
+      margin: 0; /* Eliminar márgenes */
+    "
+  >
+    <p>© 2024 VisionTech Solutions. Todos los derechos reservados.</p>
+  </footer>
 </html>
