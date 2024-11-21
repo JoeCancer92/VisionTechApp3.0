@@ -62,25 +62,35 @@
 
       <h3>Enlaces Rápidos</h3>
       <ul>
-        <li><a href="#">Gestión de Usuarios</a></li>
+        <li>
+          <a href="/gestionar_usuarios" id="gestionarUsuariosButton"
+            >Gestión de Usuarios</a
+          >
+        </li>
         <li><a href="#">Soporte Técnico</a></li>
         <li><a href="#">Contactar con el Administrador</a></li>
       </ul>
     </div>
 
     <!-- Main Content -->
-    <div class="content">
-        <h1>Bienvenido al Menú Principal de VisionTech Solutions</h1>
-        <p>
-          Esta es la página principal de VisionTech Solutions. Aquí podrás
-          gestionar tus funcionalidades.
-        </p>
-        <img
-          src="{{ url_for('static', filename='images/fondoPrincipal.jpg') }}"
-          alt="VisionTech Solutions"
-          class="background-img centered-img"
-        />
-      </div>
+    <div class="content" id="main-content">
+      <h1>Bienvenido al Menú Principal de VisionTech Solutions</h1>
+      <p>
+        Esta es la página principal de VisionTech Solutions. Aquí podrás
+        gestionar tus funcionalidades.
+      </p>
+      <img
+        src="{{ url_for('static', filename='images/fondoPrincipal.jpg') }}"
+        alt="VisionTech Solutions"
+        class="background-img centered-img"
+      />
+    </div>
+
+    <!-- Importar jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <!-- Importar el archivo JavaScript de carga dinámica -->
+    <script src="{{ url_for('static', filename='js/cargaDinamica.js') }}"></script>
 
     <!-- Footer -->
     <footer>

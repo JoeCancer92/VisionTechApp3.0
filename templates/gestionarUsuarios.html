@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Usuarios</title>
+
+    <!-- Importar CSS de DataTables -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.11.4/css/jquery.dataTables.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/menu_main.css') }}" />
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='images/icono_VT.ico') }}" />
+    <style>
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.4);
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 10% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 40%;
+        }
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <!-- Tabla de Gestión de Usuarios -->
+    <div id="main-content">
+        <h1>Gestión de Usuarios</h1>
+        <table id="usuariosTable" class="display">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Apellido</th>
+                    <th>Usuario</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- La información de la tabla se llenará dinámicamente con DataTables -->
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Modales -->
+    <!-- Modal Ver Usuario -->
+    <div id="verUsuarioModal" class="modal">
+        <div class="modal-content">
+            <span id="closeVerUsuario" class="close">&times;</span>
+            <h2>Detalles del Usuario</h2>
+            <p><strong>ID:</strong> <span id="verUsuarioId"></span></p>
+            <p><strong>Nombre:</strong> <span id="verUsuarioNombre"></span></p>
+            <p><strong>Apellido:</strong> <span id="verUsuarioApellido"></span></p>
+            <p><strong>Usuario:</strong> <span id="verUsuario"></span></p>
+            <p><strong>Contraseña:</strong> <span id="verUsuarioContrasena"></span></p>
+        </div>
+    </div>
+
+    <!-- Modal Editar Usuario -->
+    <div id="editarUsuarioModal" class="modal">
+        <div class="modal-content">
+            <span id="closeEditarUsuario" class="close">&times;</span>
+            <h2>Editar Usuario</h2>
+            <form>
+                <label for="editarUsuarioId">ID:</label>
+                <input type="text" id="editarUsuarioId" readonly /><br />
+                <label for="editarNombre">Nombre:</label>
+                <input type="text" id="editarNombre" /><br />
+                <label for="editarApellido">Apellido:</label>
+                <input type="text" id="editarApellido" /><br />
+                <label for="editarUsuario">Usuario:</label>
+                <input type="text" id="editarUsuario" /><br />
+                <label for="editarContrasena">Contraseña:</label>
+                <input type="text" id="editarContrasena" /><br />
+                <button type="button" id="guardarCambiosButton">Guardar Cambios</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Eliminar Usuario -->
+    <div id="eliminarUsuarioModal" class="modal">
+        <div class="modal-content">
+            <span id="closeEliminarUsuario" class="close">&times;</span>
+            <h2>Eliminar Usuario</h2>
+            <p>¿Estás seguro de que deseas eliminar al usuario con ID: <span id="eliminarUsuarioId"></span>?</p>
+            <button type="button" id="confirmarEliminarButton">Eliminar</button>
+            <button type="button" id="cancelarEliminarButton">Cancelar</button>
+        </div>
+    </div>
+
+    <!-- Importar jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <!-- Importar JavaScript de DataTables -->
+    <script src="https://cdn.datatables.net/1.11.4/js/jquery.dataTables.min.js"></script>
+
+    <!-- Importar el archivo JavaScript de carga dinámica -->
+    <script src="{{ url_for('static', filename='js/cargaDinamica.js') }}"></script>
+
+    <!-- Script para inicializar el DataTable y manejar los modales -->
+    <script>
+        $(document).ready(function () {
+            // Verificar si el DataTable ya existe y destruirlo si es necesario para evitar duplicados
+            if ($.fn.DataTable.isDataTable('#usuariosTable')) {
+                $('#usuariosTable').DataTable().destroy();
+                $('#usuariosTable tbody').empty();
+            }
+    
+            // Inicializar DataTable
+            $('#usuariosTable').DataTable({
+                ajax: {
+                    url: '/listar_usuarios',
+                    type: 'GET',
+                    dataSrc: ''
+                },
+                columns: [
+                    { data: 'id' },
+                    { data: 'nombre' },
+                    { data: 'apellido' },
+                    { data: 'usuario' },
+                    {
+                        data: null,
+                        render: function (data, type, row) {
+                            return `
+                                <button class="ver-usuario" data-id="${data.id}">Ver</button>
+                                <button class="editar-usuario" data-id="${data.id}">Editar</button>
+                                <button class="eliminar-usuario" data-id="${data.id}">Eliminar</button>
+                            `;
+                        }
+                    }
+                ]
+            });
+    
+            // Abrir modal de Ver Usuario
+            $(document).off('click', '.ver-usuario').on('click', '.ver-usuario', function () {
+                const userId = $(this).data('id');
+                $.get(`/ver_usuario?id=${userId}`, function (data) {
+                    if (data.error) {
+                        alert(data.error);
+                    } else {
+                        $('#verUsuarioId').text(data.id);
+                        $('#verUsuarioNombre').text(data.nombre);
+                        $('#verUsuarioApellido').text(data.apellido);
+                        $('#verUsuario').text(data.usuario);
+                        $('#verUsuarioContrasena').text(data.contrasena);
+                        $('#verUsuarioModal').fadeIn();
+                    }
+                });
+            });
+    
+            // Cerrar modal de Ver Usuario
+            $('#closeVerUsuario').off('click').on('click', function () {
+                $('#verUsuarioModal').fadeOut();
+            });
+    
+            // Abrir modal de Editar Usuario
+            $(document).off('click', '.editar-usuario').on('click', '.editar-usuario', function () {
+                const userId = $(this).data('id');
+                $.get(`/ver_usuario?id=${userId}`, function (data) {
+                    if (data.error) {
+                        alert(data.error);
+                    } else {
+                        $('#editarUsuarioId').val(data.id);
+                        $('#editarNombre').val(data.nombre);
+                        $('#editarApellido').val(data.apellido);
+                        $('#editarUsuario').val(data.usuario);
+                        $('#editarContrasena').val(data.contrasena);
+                        $('#editarUsuarioModal').fadeIn();
+                    }
+                });
+            });
+    
+            // Cerrar modal de Editar Usuario
+            $('#closeEditarUsuario').off('click').on('click', function () {
+                $('#editarUsuarioModal').fadeOut();
+            });
+    
+            // Guardar cambios del usuario
+            $('#guardarCambiosButton').off('click').on('click', function () {
+                const userData = {
+                    id: $('#editarUsuarioId').val(),
+                    nombre: $('#editarNombre').val(),
+                    apellido: $('#editarApellido').val(),
+                    usuario: $('#editarUsuario').val(),
+                    contrasena: $('#editarContrasena').val(),
+                };
+    
+                $.ajax({
+                    url: '/editar_usuario',
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(userData),
+                    success: function (response) {
+                        alert(response.message);
+                        $('#editarUsuarioModal').fadeOut();
+                        $('#usuariosTable').DataTable().ajax.reload();
+                    },
+                    error: function (xhr) {
+                        alert(xhr.responseJSON.error);
+                    },
+                });
+            });
+    
+            // Abrir modal de Eliminar Usuario
+            $(document).off('click', '.eliminar-usuario').on('click', '.eliminar-usuario', function () {
+                const userId = $(this).data('id');
+                $('#eliminarUsuarioId').text(userId);
+                $('#eliminarUsuarioModal').fadeIn();
+            });
+    
+            // Cerrar modal de Eliminar Usuario
+            $('#closeEliminarUsuario, #cancelarEliminarButton').off('click').on('click', function () {
+                $('#eliminarUsuarioModal').fadeOut();
+            });
+    
+            // Confirmar eliminación de usuario
+            $('#confirmarEliminarButton').off('click').on('click', function () {
+                const userId = $('#eliminarUsuarioId').text();
+                $.ajax({
+                    url: `/eliminar_usuario`,
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ id: userId }),
+                    success: function (response) {
+                        alert(response.message);
+                        $('#eliminarUsuarioModal').fadeOut();
+                        $('#usuariosTable').DataTable().ajax.reload();
+                    },
+                    error: function (xhr) {
+                        alert(xhr.responseJSON.error);
+                    },
+                });
+            });
+        });
+    </script>
+    
+</body>
+</html>
