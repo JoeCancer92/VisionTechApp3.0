@@ -1,6 +1,7 @@
 import mysql.connector # type: ignore
 from mysql.connector import Error # type: ignore
 
+#conexion a la base de datos
 def conectar():
     try:
         conexion = mysql.connector.connect(
